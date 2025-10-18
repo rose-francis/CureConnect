@@ -1,84 +1,167 @@
-// PatientsList.js
-import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import { useTheme, useNavigation } from '@react-navigation/native';
+import { supabase } from '../../supabaseClient'; // Adjust the path to your supabase client
 
-const dummyPatients = [
-  { id: '1', name: 'John Doe', avatar: 'https://i.pravatar.cc/150?img=12', age: 32, blood: 'O+' },
-  { id: '2', name: 'Jane Smith', avatar: 'https://i.pravatar.cc/150?img=20', age: 28, blood: 'A-' },
-  { id: '3', name: 'Michael Brown', avatar: 'https://i.pravatar.cc/150?img=30', age: 40, blood: 'B+' },
-];
+// Function to generate consistent avatar based on patient ID
+const getAvatarUrl = (patientId) => {
+  const avatarNum = (patientId% 55) + 1;
+  return `https://i.pravatar.cc/150?img=${avatarNum}`;
+};
 
 const PatientsList = () => {
-
   const { colors } = useTheme();
   const navigation = useNavigation();
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchPatients();
+  }, []);
+
+  const fetchPatients = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('Patient')
+        .select('*')
+        .order('Name', { ascending: true });
+
+      if (error) throw error;
+
+      // Add avatar URL to each patient
+      const patientsWithAvatars = data.map(patient => ({
+        ...patient,
+        avatar: getAvatarUrl(patient.Patient_id)
+      }));
+
+      setPatients(patientsWithAvatars);
+    } catch (err) {
+      console.error('Error fetching patients:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const styles = StyleSheet.create({
-  container: { flex: 1 },
-  headingContainer: {
-  marginBottom: 16,
-  paddingHorizontal: 16,
-},
-headingText: {
-  fontSize: 30,
-  fontWeight: '700',
-  paddingTop:20,
-  paddingLeft:12
-},
-subHeadingText: {
-  fontSize: 14,
-  fontWeight: '500',
-  paddingBottom:10,
-  paddingLeft:12
-},
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderWidth: 1,
-    borderRadius: 12,
-    marginBottom: 12,
-    elevation: 1,
-  },
-  avatar: { width: 50, height: 50, borderRadius: 25, marginRight: 12 },
-  info: { flex: 1 },
-  name: { fontSize: 18, fontWeight: '600' },
-  details: { fontSize: 14, marginTop: 4 },
-});
+    container: {
+      flex: 1,
+    },
+    headingContainer: {
+      padding: 16,
+    },
+    headingText: {
+      fontSize: 30,
+      fontWeight: '700',
+      paddingTop: 20,
+      paddingLeft: 12
+    },
+    subHeadingText: {
+      fontSize: 14,
+      fontWeight: '500',
+      paddingBottom: 10,
+      paddingLeft: 12
+    },
+    card: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 12,
+      borderWidth: 1,
+      borderRadius: 12,
+      marginBottom: 12,
+      elevation: 1,
+    },
+    avatar: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      marginRight: 12,
+    },
+    info: {
+      flex: 1,
+    },
+    name: {
+      fontSize: 18,
+      fontWeight: '600',
+    },
+    details: {
+      fontSize: 14,
+      marginTop: 4,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    errorText: {
+      fontSize: 16,
+      color: 'red',
+      textAlign: 'center',
+      padding: 20,
+    },
+    emptyText: {
+      fontSize: 16,
+      textAlign: 'center',
+      padding: 20,
+    },
+  });
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={[styles.card, { backgroundColor: colors.card, borderColor: colors.background }]}
-      onPress={() => navigation.navigate('PatientProfiles', { patient: item })}
+      onPress={() => navigation.navigate('PatientProfile', { patient: item })}
     >
       <Image source={{ uri: item.avatar }} style={styles.avatar} />
       <View style={styles.info}>
-        <Text style={[styles.name, { color: colors.text }]}>{item.name}</Text>
+        <Text style={[styles.name, { color: colors.text }]}>{item.Name}</Text>
         <Text style={[styles.details, { color: colors.text }]}>
-          Age: {item.age} • Blood: {item.blood}
+           Age: {item.Age} • Blood: {item.BloodGroup}
         </Text>
       </View>
     </TouchableOpacity>
   );
 
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.emptyText, { color: colors.text, marginTop: 10 }]}>Loading patients...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.headingContainer}>
+          <Text style={[styles.headingText, { color: colors.text }]}>Patients</Text>
+          <Text style={[styles.subHeadingText, { color: colors.primary }]}>Find a matching patient</Text>
+        </View>
+        <Text style={styles.errorText}>Error loading patients: {error}</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.headingContainer}>
-  <Text style={[styles.headingText, { color: colors.text }]}>Patient Profiles</Text>
-  <Text style={[styles.subHeadingText, { color: colors.primary }]}>
-    Tap a profile to view details
-  </Text>
-</View>
-
-      <FlatList
-        data={dummyPatients}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={{ padding: 16 }}
-      />
+        <Text style={[styles.headingText, { color: colors.text }]}>Patients</Text>
+        <Text style={[styles.subHeadingText, { color: colors.primary }]}>Find a matching patient</Text>
+      </View>
+      {patients.length === 0 ? (
+        <Text style={[styles.emptyText, { color: colors.text }]}>No patients found</Text>
+      ) : (
+        <FlatList
+          data={patients}
+          keyExtractor={(item) => item.Patient_id.toString()}
+          renderItem={renderItem}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
+        />
+      )}
     </View>
   );
-}
+};
 
 export default PatientsList;
