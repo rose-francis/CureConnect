@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from 'react-native';
-import { useTheme, useNavigation } from '@react-navigation/native';
+import { useTheme, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../supabaseClient'; // Adjust the path to your supabase client
 
 // Function to generate consistent avatar based on donor ID
@@ -16,9 +16,11 @@ const DonorsList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchDonors();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchDonors();
+    }, [])
+  );
 
   const fetchDonors = async () => {
     try {
@@ -53,16 +55,16 @@ const DonorsList = () => {
       padding: 16,
     },
     headingText: {
-      fontSize: 30,
+      fontSize: 35,
       fontWeight: '700',
       paddingTop: 20,
-      paddingLeft: 12
+      paddingLeft: 12,
     },
     subHeadingText: {
       fontSize: 14,
       fontWeight: '500',
       paddingBottom: 10,
-      paddingLeft: 12
+      paddingLeft: 12,
     },
     card: {
       flexDirection: 'row',
