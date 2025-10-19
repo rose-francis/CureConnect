@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from 'react-native';
-import { useTheme, useNavigation } from '@react-navigation/native';
+import { useTheme, useNavigation,useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../supabaseClient'; // Adjust the path to your supabase client
 
 // Function to generate consistent avatar based on patient ID
@@ -16,9 +16,11 @@ const PatientsList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
+  useFocusEffect(
+  React.useCallback(() => {
     fetchPatients();
-  }, []);
+  }, [])
+);
 
   const fetchPatients = async () => {
     try {
@@ -38,7 +40,7 @@ const PatientsList = () => {
 
       setPatients(patientsWithAvatars);
     } catch (err) {
-      console.error('Error fetching patients:', err);
+      console.error('Error fetching or setting avatars for patients:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -53,17 +55,14 @@ const PatientsList = () => {
       padding: 16,
     },
     headingText: {
-      fontSize: 30,
+      fontSize: 35,
       fontWeight: '700',
+      color: '#000000',
+      marginBottom:15,
       paddingTop: 20,
-      paddingLeft: 12
+      paddingLeft: 12,
     },
-    subHeadingText: {
-      fontSize: 14,
-      fontWeight: '500',
-      paddingBottom: 10,
-      paddingLeft: 12
-    },
+    
     card: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -136,8 +135,7 @@ const PatientsList = () => {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.headingContainer}>
-          <Text style={[styles.headingText, { color: colors.text }]}>Patients</Text>
-          <Text style={[styles.subHeadingText, { color: colors.primary }]}>Find a matching patient</Text>
+          <Text style={styles.headingText}>Patients</Text>
         </View>
         <Text style={styles.errorText}>Error loading patients: {error}</Text>
       </View>
@@ -147,8 +145,7 @@ const PatientsList = () => {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.headingContainer}>
-        <Text style={[styles.headingText, { color: colors.text }]}>Patients</Text>
-        <Text style={[styles.subHeadingText, { color: colors.primary }]}>Find a matching patient</Text>
+        <Text style={styles.headingText}>Patients</Text>
       </View>
       {patients.length === 0 ? (
         <Text style={[styles.emptyText, { color: colors.text }]}>No patients found</Text>

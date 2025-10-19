@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useDispatch } from 'react-redux';
+
+
 import { submitPatient } from '../../Store/PatientThunk';
 
 const PatientForm = ({ navigation }) => {
@@ -15,6 +17,7 @@ const PatientForm = ({ navigation }) => {
     Symptoms: '',
     GenoType: '',
     RSID: '',
+    InferenceGeneSymbol: ''
   });
 
   const handleChange = (field, value) => {
@@ -23,7 +26,7 @@ const PatientForm = ({ navigation }) => {
 
   const handleSubmit = () => {
     
-    const requiredFields = Object.keys(formData).filter((key) => key !== 'symptoms');//symptoms field is optional
+    const requiredFields = Object.keys(formData).filter((key) => key !== 'Symptoms');//symptoms field is optional
 
     for (let field of requiredFields) {
       if (!formData[field].trim()) {
@@ -56,6 +59,7 @@ const PatientForm = ({ navigation }) => {
         { label: 'Symptoms (Optional)', field: 'Symptoms' }, 
         { label: 'Genotype', field: 'GenoType' },
         { label: 'RSID', field: 'RSID' },
+        { label: 'Inference Gene Symbol', field: 'InferenceGeneSymbol' },
       ].map(({ label, field }) => (
         <View key={field} style={styles.inputContainer}>
           <Text>{label}:</Text>

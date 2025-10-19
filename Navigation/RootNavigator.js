@@ -5,6 +5,7 @@ import DonorProfile from "../src/pages/DonorProfiles.jsx";
 import Landing from "../src/pages/Landing.jsx";
 import PatientForm from "../src/pages/PatientForm.jsx";
 import DonorForm from "../src/pages/DonorForm.jsx";
+import Results from "../src/pages/Results.jsx";
 
 const Stack = createNativeStackNavigator();
 const RootNavigator = () => {
@@ -16,6 +17,7 @@ const RootNavigator = () => {
             <Stack.Screen name = "DonorProfile" component = {DonorProfile}/>
             <Stack.Screen name = "DonorForm" component = {DonorForm}/>
             <Stack.Screen name = "PatientForm" component = {PatientForm}/>
+            <Stack.Screen name="Results" component={Results} />
         </Stack.Navigator>
     )
 }

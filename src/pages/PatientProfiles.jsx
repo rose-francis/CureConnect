@@ -1,28 +1,27 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useTheme } from '@react-navigation/native';
+import { useTheme,useNavigation} from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function PatientProfile({ route }) {
   const { colors } = useTheme();
+  const navigation = useNavigation();
   const { patient } = route.params;
 
   const handleDetectDiseaseRisk = () => {
-    Alert.alert(
-      'Disease Risk Detection',
-      `Analyzing disease risk for ${patient.Name}...\n\nThis feature will analyze genetic and clinical data to predict disease susceptibility.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Continue', 
-          onPress: () => {
-            // Add your disease detection logic here
-            console.log('Detecting disease risk for patient:', patient.Patient_id);
-          }
-        }
-      ]
-    );
-  };
+  // Mock data 
+  const mockResults = [
+    { disease: 'Diabetes', risk: 27 },
+    { disease: 'Heart Disease', risk: 15 },
+    { disease: 'Alzheimer\'s', risk: 5 },
+    { disease: 'Hypertension', risk: 40 },
+  ];
+
+  navigation.navigate('Results', {
+    patient: patient,
+    results: mockResults,
+  });
+};
 
   const styles = StyleSheet.create({
     container: {
@@ -116,6 +115,11 @@ export default function PatientProfile({ route }) {
         <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.background }]}>
           <Text style={[styles.cardTitle, { color: colors.primary }]}>Patient Details</Text>
           
+          <View style={styles.infoRow}>
+            <Text style={[styles.label, { color: colors.text }]}>Patient Id:</Text>
+            <Text style={[styles.value, { color: colors.primary }]}>{patient.Patient_id}</Text>
+          </View>
+
           <View style={styles.infoRow}>
             <Text style={[styles.label, { color: colors.text }]}>Blood Group:</Text>
             <Text style={[styles.value, { color: colors.primary }]}>{patient.BloodGroup}</Text>
