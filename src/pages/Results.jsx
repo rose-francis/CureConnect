@@ -6,12 +6,6 @@ export default function Results({ route }) {
   const { colors } = useTheme();
   const { patient, results } = route.params;
 
-  const getRiskColor = (risk) => {
-    if (risk >= 50) return 'red';
-    if (risk >= 20) return 'orange';
-    return 'green';
-  };
-
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -19,28 +13,32 @@ export default function Results({ route }) {
       backgroundColor: colors.background,
     },
     header: {
-      fontSize: 45,
+      fontSize: 50,
       fontWeight: '700',
       color: colors.primary,
       textAlign: 'center',
       marginTop: 20,
       marginBottom: 40,
-      fontFamily:'cursive'
+      fontFamily: 'cursive',
     },
-    patientName: {
-      fontSize: 23,
-      fontWeight: '600',
-      color: colors.text,
-      marginBottom:30
+    patientInfoRow: {
+      flexDirection: 'row',
+      marginBottom: 3, // consistent spacing
     },
-    patientId: {
-      fontSize: 23,
+    patientLabel: {
+      fontSize: 22,
       fontWeight: '600',
-      color: colors.text,
-      marginBottom:10
+      color: colors.primary,
+      marginRight: 6,
+    },
+    patientValue: {
+      fontSize: 22,
+      fontWeight: '700',
+      color: '#000',
+      flexShrink: 1,
     },
     resultItem: {
-      padding: 16,
+      padding: 12,
       marginBottom: 12,
       borderRadius: 12,
       backgroundColor: colors.card,
@@ -52,32 +50,66 @@ export default function Results({ route }) {
       shadowRadius: 4,
       elevation: 3,
     },
-    diseaseName: {
+    row: {
+      flexDirection: 'row',
+      marginBottom: 4,
+      alignItems: 'flex-start',
+    },
+    labelContainer: {
+      width: 140,
+      marginRight: 6,
+    },
+    labelText: {
       fontSize: 18,
       fontWeight: '600',
-      color: colors.text,
+      color: colors.primary,
+      lineHeight: 20,
     },
-    risk: {
+    valueText: {
       fontSize: 16,
-      marginTop: 6,
+      fontWeight: '400',
+      color: '#000',
+      flex: 1,
+      flexWrap: 'wrap',
     },
   });
 
   const renderItem = ({ item }) => (
     <View style={styles.resultItem}>
-      <Text style={styles.diseaseName}>{item.disease}</Text>
-      <Text style={[styles.risk, { color: getRiskColor(item.risk) }]}>
-        Risk: {item.risk}%
-      </Text>
+      <View style={styles.row}>
+        <View style={styles.labelContainer}>
+          <Text style={styles.labelText}>Disease:</Text>
+        </View>
+        <Text style={styles.valueText}>{item.DiseaseName}</Text>
+      </View>
+      <View style={styles.row}>
+        <View style={styles.labelContainer}>
+          <Text style={styles.labelText}>Disease ID:</Text>
+        </View>
+        <Text style={styles.valueText}>{item.DiseaseID}</Text>
+      </View>
     </View>
   );
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Risk Analysis</Text>
-      <Text style={styles.patientId}>Patient ID: {patient.Patient_id}</Text>
-      <Text style={styles.patientName}>Patient Name: {patient.Name}</Text>
 
+    {/* Patient Info */}
+      <View style={styles.patientInfoRow}>
+        <Text style={styles.patientLabel}>Patient ID:</Text>
+        <Text style={styles.patientValue}>{patient.Patient_id}</Text>
+      </View>
+      <View style={styles.patientInfoRow}>
+        <Text style={styles.patientLabel}>Patient Name:</Text>
+        <Text style={styles.patientValue}>{patient.Name}</Text>
+      </View>
+      <View style={[styles.patientInfoRow, { marginBottom: 32 }]}>
+        <Text style={styles.patientLabel}>Inference Gene Symbol:</Text>
+        <Text style={styles.patientValue}>{patient.InferenceGeneSymbol}</Text>
+      </View>      
+
+      {/* Results */}
       <FlatList
         data={results}
         keyExtractor={(item, index) => index.toString()}
