@@ -1,40 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert,  ActivityIndicator } from 'react-native';
-import { useTheme,useNavigation} from '@react-navigation/native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { useTheme, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function PatientProfile({ route }) {
   const { colors } = useTheme();
   const navigation = useNavigation();
-  const { patient } = route.params;
+  const { patient: initialPatient } = route.params;
+  const [patient, setPatient] = useState(initialPatient);
   const [loading, setLoading] = useState(false);
+  const [fetchingDiseases, setFetchingDiseases] = useState(true);
+  const [patientDiseases, setPatientDiseases] = useState([]); // 🆕 new state
 
+  // Fetch patient's detected diseases on component mount
+  useEffect(() => {
+    fetchPatientDiseases();
+  }, []);
 
+  // 🆕 Fetch DiseaseID and DiseaseName from Patient-Disease table
+  const fetchPatientDiseases = async () => {
+    try {
+      const url = `http://192.168.1.192:3000/api/result/patient/${patient.Patient_id}`;
+      console.log('🔍 Fetching patient diseases:', url);
+
+      const response = await axios.get(url);
+      console.log('✅ Patient stored diseases:', response.data);
+
+      setPatientDiseases(response.data.diseases || []);
+    } catch (error) {
+      console.error("❌ Error fetching diseases:", error.response?.data || error.message);
+    } finally {
+      setFetchingDiseases(false);
+    }
+  };
+
+  // Handle disease risk detection
   const handleDetectDiseaseRisk = async () => {
     console.log('🔍 Starting disease risk detection');
     console.log('📋 Patient_id:', patient.Patient_id);
-    
+
     setLoading(true);
-    
+
     try {
-      const url = `http://10.194.210.176:3000/api/result/${patient.Patient_id}`;
+      const url = `http://192.168.1.192:3000/api/result/${patient.Patient_id}`;
       console.log('🌐 Requesting:', url);
-      
+
       const response = await axios.get(url);
       console.log('✅ Data received:', response.data);
-      
+
+      // Refresh disease data after detection
+      await fetchPatientDiseases();
+
       // Navigate to Results page
       navigation.navigate('Results', {
         patient: response.data.patient,
         results: response.data.results
       });
-      
+
     } catch (error) {
       console.error("❌ Error:", error.response?.data || error.message);
-      
       Alert.alert(
-        "Error", 
+        "Error",
         error.response?.data?.error || "Unable to fetch disease risk data"
       );
     } finally {
@@ -88,28 +115,27 @@ export default function PatientProfile({ route }) {
       opacity: 0.6,
     },
     button: {
-    alignSelf: 'center',
-    width: '60%',
-    height: 55,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 12,
-    marginBottom: 24,
-    backgroundColor: colors.primary,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-  },
-
+      alignSelf: 'center',
+      width: '60%',
+      height: 55,
+      borderRadius: 12,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 12,
+      marginBottom: 24,
+      backgroundColor: colors.primary,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    buttonText: {
+      color: 'white',
+      fontSize: 18,
+      fontWeight: '600',
+      letterSpacing: 0.5,
+    },
     infoRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -136,7 +162,7 @@ export default function PatientProfile({ route }) {
         {/* 🪪 Info card */}
         <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.background }]}>
           <Text style={[styles.cardTitle, { color: colors.primary }]}>Patient Details</Text>
-          
+
           <View style={styles.infoRow}>
             <Text style={[styles.label, { color: colors.text }]}>Patient Id:</Text>
             <Text style={[styles.value, { color: colors.primary }]}>{patient.Patient_id}</Text>
@@ -187,9 +213,33 @@ export default function PatientProfile({ route }) {
               <Text style={[styles.value, { color: colors.primary }]}>{patient.InferenceGeneSymbol}</Text>
             </View>
           )}
-          </View>
+        </View>
 
-          <TouchableOpacity 
+        {/* 🧬 Disease Information Card */}
+        {fetchingDiseases ? (
+          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.background, alignItems: 'center' }]}>
+            <ActivityIndicator color={colors.primary} size="small" />
+            <Text style={[styles.label, { color: colors.text, marginTop: 8 }]}>Loading disease information...</Text>
+          </View>
+        ) : (
+          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.background }]}>
+            <Text style={[styles.cardTitle, { color: colors.primary }]}>Detected Diseases</Text>
+
+            {patientDiseases.length > 0 ? (
+              patientDiseases.map((disease, index) => (
+                <View key={index} style={styles.infoRow}>
+                  <Text style={[styles.label, { color: colors.text }]}>{disease.DiseaseName}</Text>
+                  <Text style={[styles.value, { color: colors.primary }]}>{disease.DiseaseID}</Text>
+                </View>
+              ))
+            ) : (
+              <Text style={[styles.value, { color: colors.text }]}>No disease records found</Text>
+            )}
+          </View>
+        )}
+
+        {/* 🔘 Button */}
+        <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleDetectDiseaseRisk}
           activeOpacity={0.85}
