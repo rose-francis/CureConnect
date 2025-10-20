@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import React, { useState } from 'react';
+import axios from 'axios';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert,  ActivityIndicator } from 'react-native';
 import { useTheme,useNavigation} from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -7,21 +8,39 @@ export default function PatientProfile({ route }) {
   const { colors } = useTheme();
   const navigation = useNavigation();
   const { patient } = route.params;
+  const [loading, setLoading] = useState(false);
 
-  const handleDetectDiseaseRisk = () => {
-  // Mock data 
-  const mockResults = [
-    { disease: 'Diabetes', risk: 27 },
-    { disease: 'Heart Disease', risk: 15 },
-    { disease: 'Alzheimer\'s', risk: 5 },
-    { disease: 'Hypertension', risk: 40 },
-  ];
 
-  navigation.navigate('Results', {
-    patient: patient,
-    results: mockResults,
-  });
-};
+  const handleDetectDiseaseRisk = async () => {
+    console.log('🔍 Starting disease risk detection');
+    console.log('📋 Patient_id:', patient.Patient_id);
+    
+    setLoading(true);
+    
+    try {
+      const url = `http://10.194.210.176:3000/api/result/${patient.Patient_id}`;
+      console.log('🌐 Requesting:', url);
+      
+      const response = await axios.get(url);
+      console.log('✅ Data received:', response.data);
+      
+      // Navigate to Results page
+      navigation.navigate('Results', {
+        patient: response.data.patient,
+        results: response.data.results
+      });
+      
+    } catch (error) {
+      console.error("❌ Error:", error.response?.data || error.message);
+      
+      Alert.alert(
+        "Error", 
+        error.response?.data?.error || "Unable to fetch disease risk data"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const styles = StyleSheet.create({
     container: {
@@ -64,6 +83,9 @@ export default function PatientProfile({ route }) {
       fontSize: 18,
       fontWeight: '600',
       marginBottom: 12,
+    },
+    buttonDisabled: {
+      opacity: 0.6,
     },
     button: {
     alignSelf: 'center',
@@ -168,13 +190,17 @@ export default function PatientProfile({ route }) {
           </View>
 
           <TouchableOpacity 
-          style={styles.button}
+          style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleDetectDiseaseRisk}
           activeOpacity={0.85}
+          disabled={loading}
         >
-          <Text style={styles.buttonText}>Detect Disease Risk</Text>
+          {loading ? (
+            <ActivityIndicator color="white" size="small" />
+          ) : (
+            <Text style={styles.buttonText}>Detect Disease Risk</Text>
+          )}
         </TouchableOpacity>
-      
       </ScrollView>
     </SafeAreaView>
   );
