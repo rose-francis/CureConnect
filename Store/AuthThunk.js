@@ -40,7 +40,7 @@ export const signUp =  createAsyncThunk(
             dispatch(setError(null));
 
             const response = await axios.post(
-                `http://192.168.1.84:3000/api/auth/signup`,
+                `http://192.168.1.192:3000/api/auth/signup`,
                 {email,password,name}
             );
 
@@ -72,7 +72,7 @@ export const signIn = createAsyncThunk(
       dispatch(setLoading(true));
 
       const response = await axios.post(
-        `http://192.168.1.84:3000/api/auth/signin`,
+        `http://192.168.1.192:3000/api/auth/signin`,
         { email, password }
       );
       console.warn("Response:",response)

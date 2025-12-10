@@ -6,7 +6,7 @@ export const submitDonor=createAsyncThunk(
     async(donorData, {rejectWithValue}) =>{
         try{
             const response= await axios.post(
-                "http://192.168.1.84:3000/api/donor",
+                "http://192.168.1.192:3000/api/donor",
                 donorData
             );
             return response.data;
